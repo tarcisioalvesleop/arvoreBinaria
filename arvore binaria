@@ -1,0 +1,466 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+//Definindo o registro que representará
+//cada elemento da arvore binaria
+struct Arvore{
+    int num;
+    struct Arvore *esq, *dir;
+};
+
+//Definindo o registro que representará
+//cada elemento da arvore binaria na pilha
+struct Pilha{
+    struct Arvore *num;
+    struct Pilha *prox;
+};
+
+int buscar(struct Arvore *raiz, int num)
+{
+    if(raiz == NULL)
+    {
+        printf("A arvore esta vazia.\n");
+    }
+    else{
+        int achou =0;
+        struct Arvore* aux;
+        aux=raiz;
+        while (aux!= NULL && achou ==0)
+        {
+            if(aux->num == num)
+            {
+                printf("elemento encotrado \n");
+                achou=1;
+                return 1;
+            }
+            else if(num < aux->num)
+                aux=aux->esq;
+                else aux=aux->dir;
+        }
+        if(achou == 0 )
+            printf("Elemento não encontrado. \n");
+        return 0;
+    }
+}
+void imprimirOrdem(struct Arvore *raiz, struct Pilha *topo)
+{
+    if(raiz == NULL)
+        printf("Arvore esta vazia. \n");
+    else{
+        //imprimindo em ordem
+        printf("listando em ordem. \n");
+        struct Arvore *aux;
+        struct Pilha *auxPilha;
+        aux=raiz;
+        topo= NULL;
+        do{
+            //caminhando para esquerda ate chega no NULL
+            while (aux!= NULL)
+            {
+                struct Pilha* novo;
+                novo = (struct Pilha*) malloc(sizeof(struct Pilha));
+                auxPilha = novo;
+                auxPilha->num = aux;
+                auxPilha->prox = topo;
+                topo = auxPilha;
+                aux = aux->esq;
+            }
+            if(topo != NULL)
+            {
+                auxPilha= topo;
+                printf("%d \n", auxPilha->num->num);
+                aux = topo->num->dir;
+                topo = topo->prox;
+            }
+        }while(topo !=NULL || aux != NULL);
+    }
+}
+
+void imprimirPreOrdem(struct Arvore *raiz, struct Pilha *topo)
+{
+    if(raiz == NULL)
+        printf("Arvore esta vazia. \n");
+    else{
+            printf("listando em Pre-ordem. \n");
+            struct Arvore *aux;
+            struct Pilha *auxPilha;
+            aux=raiz;
+            topo= NULL;
+            do{
+            //caminhando para esquerda ate chegar no NULL
+                while (aux!= NULL)
+                {
+                    struct Pilha* novo;
+                    novo = (struct Pilha*) malloc(sizeof(struct Pilha));
+                    auxPilha = novo;
+                    printf("%d \n", aux->num);
+                    auxPilha->num = aux;
+                    auxPilha->prox = topo;
+                    topo = auxPilha;
+                    aux = aux->esq;
+                }
+                if(topo != NULL)
+                {
+                    auxPilha= topo;
+                    topo = topo->prox;
+                    aux = auxPilha->num->dir;
+            }
+        }while(topo != NULL || aux != NULL);
+    }
+}
+//imprimir pos ordem
+void imprimirPosOrdem(struct Arvore *raiz)
+{
+    if(raiz != NULL){
+        imprimirPosOrdem(raiz->esq);
+        imprimirPosOrdem(raiz->dir);
+        printf("%d\n", raiz->num);
+    }
+}
+struct Arvore *esvaziar(struct Arvore *raiz, struct Pilha *topo)
+{
+    if(raiz == NULL)
+        printf("Arvore esta vazia. \n");
+    else{
+        struct Arvore *aux;
+        struct Pilha *auxPilha;
+        aux=raiz;
+        topo= NULL;
+        do
+        {//caminha pela arvore e coloca cada no na pilha
+            while(aux != NULL)
+            {
+                struct Pilha* novo;
+                novo = (struct Pilha*) malloc(sizeof(struct Pilha));
+                auxPilha = novo;
+                //printf("%d", aux->num);
+                auxPilha->num = aux;
+                auxPilha->prox = topo;
+                topo = auxPilha;
+                aux = aux->esq;
+            }
+            if(topo != NULL)
+            {
+                auxPilha = topo;
+                topo = topo->prox;
+                aux = auxPilha->num->dir;
+            }
+        }while(topo != NULL || aux != NULL);
+    //passando os elementos da pilha removendo
+    auxPilha = topo;
+    while(auxPilha != NULL)
+    {
+        topo= topo->prox;
+        free(topo->num);
+        free(auxPilha);
+        auxPilha=topo;
+    }
+    raiz=NULL;
+    printf("Arvore esvaziada! \n");
+    return raiz;
+    }
+}
+
+
+
+int main()
+{
+    struct Arvore *raiz = NULL; //o ponteiro raiz =NULL
+    struct Pilha *topo;//ponteiro topo da pilha
+    int op, num;
+    double start, stop, elapsed;
+    do{
+        printf("Menu de opcao \n");
+        printf("Digite 1 para Inserir \n");
+        printf("Digite 2 para Buscar elemento \n");
+        printf("Digite 3 para mostrar arvore em ordem \n");
+        printf("Digite 4 para mostrar arvore em Pre-ordem \n");
+        printf("Digite 5 para mostrar arvore em Pos-ordem \n");
+        printf("Digite 6 para remover elemento \n");
+        printf("Digite 7 para esvaziar arvore \n");
+        printf("Digite 8 para sair \n");
+        scanf("%d", &op);
+        switch (op)
+        {
+            case 1:
+                printf("Digite a quantidade de elementos a inserir \n");
+                scanf("%d", &num);
+                start = (double) clock() / CLOCKS_PER_SEC;
+                for(int i=1; i <= num;i++){
+                    int valor = rand();
+                    //inserirNo
+                    struct Arvore* novo;
+                    novo = (struct Arvore*) malloc(sizeof(struct Arvore));
+                    novo->dir= NULL;
+                    novo->esq= NULL;
+                    novo->num = valor;
+                    if(raiz == NULL){
+                        raiz = novo;
+                    }
+                    else{
+                        int achou=0;
+                        struct Arvore* aux;
+                        aux=raiz;
+                        while(achou == 0)
+                        {
+                            if(novo->num < aux->num)
+                            {
+                                if(aux->esq == NULL)
+                                {
+                                    aux->esq = novo;
+                                    achou = 1;
+                                    //printf("elemento inserido\n");
+                                }
+                                else aux=aux->esq;
+                            }
+                            else if(novo->num >= aux->num)
+                            {
+                                if(aux->dir ==NULL)
+                                {
+                                    aux->dir = novo;
+                                    achou = 1;
+                                    //printf("elemento inserido\n");
+                                }
+                                else aux=aux->dir;
+                            }
+                        }
+                        }
+                }
+                stop = (double) clock() / CLOCKS_PER_SEC;
+                elapsed = stop - start;
+                printf("Tempo total em segundos da insercao: %f\n", elapsed);
+                break;
+            case 2:
+                printf("Digite o elementos a ser buscado \n");
+                scanf("%d", &num);
+                start = (double) clock() / CLOCKS_PER_SEC;
+                buscar(raiz, num);
+                stop = (double) clock() / CLOCKS_PER_SEC;
+                elapsed = stop - start;
+                printf("Tempo total em segundos da busca: %f\n", elapsed);
+                break;
+            case 3:
+                imprimirOrdem(raiz, topo);
+                break;
+            case 4:
+                imprimirPreOrdem(raiz, topo);
+                break;
+            case 5:
+                imprimirPosOrdem(raiz);
+                break;
+            case 6:
+                //remocao(raiz);
+                start = (double) clock() / CLOCKS_PER_SEC;
+                if(raiz == NULL){
+                printf("Arvore vazia. \n");
+                return NULL;
+                }
+                else {
+                int numero;
+                struct Arvore *aux;
+                struct Arvore *aux1;
+                aux=raiz;
+                int achou=0;
+                printf("Digite o numa que deseja excluir. \n");
+                scanf("%d", &numero);
+                while( achou == 0 && aux !=NULL)
+                {
+                if(aux->num == numero)
+                    achou=1;
+                else if(aux->num > numero)//numero menor vai para esquerda
+                    aux= aux->esq;
+                else//caso de ser maior
+                    aux=aux->dir;
+                }
+                if(achou == 0)
+                printf("Elemento nao esta na Arvore. \n");
+                else
+                {
+                    if(aux != raiz)//numero encontrado e será excluido nao e a raiz
+                {//temos que achar o anterior
+                struct Arvore *anterior;
+                anterior=raiz;
+                while(anterior->dir != aux && anterior->esq !=aux)
+                    {
+                        if(anterior->num > numero)
+                            anterior = anterior->esq;
+                        else
+                            anterior= anterior->dir;
+                    }
+                if(aux->dir == NULL && aux->esq == NULL)
+                {
+                    if(anterior->dir == aux)
+                        anterior->dir = NULL;
+                    else
+                        anterior->esq = NULL;
+                    free(aux);
+                }
+                else
+                {//no nao folha sera excluido
+                    if(aux->dir != NULL && aux->esq ==NULL)
+                    {//filho a direita
+                        if(anterior->esq == aux)
+                            anterior->esq = aux->dir;
+                        else
+                            anterior->dir = aux->dir;
+                        free(aux);
+                    }
+                    else if(aux->esq != NULL && aux->dir == NULL)
+                    {//filho a esquerda
+                        if(anterior->esq == aux)
+                            anterior->esq = aux->esq;
+                        else
+                            anterior->dir = aux->esq;
+                        free(aux);
+                    }
+                    else if(aux->esq != NULL && aux->dir != NULL)
+                    {//2filhos
+                        if(anterior->dir == aux)
+                        {
+                            anterior->dir = aux->dir;
+                            aux1=aux->esq;
+                        }
+                        else
+                        {
+                            anterior->esq = aux->dir;
+                            aux1=aux->esq;
+                        }
+                        free(aux);
+                        //acertando a arvore
+                        aux = anterior;
+                        while(aux != NULL)
+                        {
+                            if(aux->num < aux1->num)
+                            {
+                                if(aux->dir == NULL)
+                                {
+                                    aux->dir = aux1;
+                                    aux=NULL;
+                                }
+                                else aux=aux->dir;
+                            }
+                            else if(aux->num > aux1->num)
+                            {
+                                if(aux->esq == NULL)
+                                {
+                                    aux->esq = aux1;
+                                    aux=NULL;
+                                }
+                                else aux=aux->esq;
+                            }
+                        }
+                    }
+                    }
+                }
+                else
+                {//O numero a ser removido é raiz
+                    if(aux->dir == NULL && aux->esq == NULL)
+                {//raiz nao tem filhos
+                    free(aux);
+                    raiz=NULL;
+                }
+                else{
+                    if(aux->dir!= NULL && aux->esq == NULL)
+                    {//possui um filho a direita da raiz
+                        raiz=aux->dir;
+                        free(aux);
+                    }
+                    else if(aux->esq != NULL && aux->dir == NULL)
+                    {//um filho a esquerda da raiz
+                        raiz=aux->esq;
+                        free(aux);
+                    }
+                    else if(aux->esq != NULL && aux->dir == NULL)
+                    {//a raiz possui 2 fillhos
+                        raiz = aux->dir;
+                        aux1 = aux->esq;
+                        free(aux);
+                        aux=raiz;//realocando a arvore
+                        while (aux != NULL)
+                        {
+                            if(aux->num < aux1->num)
+                            {
+                                if(aux->dir == NULL)
+                                {
+                                    aux->dir = aux1;
+                                    aux=NULL;
+                                }
+                                else aux = aux->dir;
+                            }
+                            else if(aux->num > aux1->num)
+                                {
+                                if(aux->esq == NULL)
+                                {
+                                    aux->esq = aux1;
+                                    aux=NULL;
+                                }
+                                else aux = aux->esq;
+                                }
+                            }
+                        }
+                    }
+                }
+                printf("Numero excluido da Arvore!\n");
+                }
+                }
+                stop = (double) clock() / CLOCKS_PER_SEC;
+                elapsed = stop - start;
+                printf("Tempo total em segundos da remocao: %f\n", elapsed);
+                break;
+            case 7:
+                //esvaziar(raiz, topo);
+                start = (double) clock() / CLOCKS_PER_SEC;
+                if(raiz == NULL)
+                printf("Arvore esta vazia. \n");
+                else{
+                struct Arvore *aux;
+                struct Pilha *auxPilha;
+                aux=raiz;
+                topo= NULL;
+                do
+                {//caminha pela arvore e coloca cada no na pilha
+                while(aux != NULL)
+                {
+                    struct Pilha* novo;
+                    novo = (struct Pilha*) malloc(sizeof(struct Pilha));
+                    auxPilha = novo;
+                    //printf("%d", aux->num);
+                    auxPilha->num = aux;
+                    auxPilha->prox = topo;
+                    topo = auxPilha;
+                    aux = aux->esq;
+                }
+                if(topo != NULL)
+                {
+                    auxPilha = topo;
+                    topo = topo->prox;
+                    aux = auxPilha->num->dir;
+                }
+                }while(topo != NULL || aux != NULL);
+                //passando os elementos da pilha removendo
+                auxPilha = topo;
+                while(auxPilha != NULL)
+                {
+                    topo= topo->prox;
+                    free(topo->num);
+                    free(auxPilha);
+                    auxPilha=topo;
+                }
+                raiz=NULL;
+                printf("Arvore esvaziada! \n");
+                }
+                stop = (double) clock() / CLOCKS_PER_SEC;
+                elapsed = stop - start;
+                printf("Tempo total em segundos para esvaziar arvore: %f\n", elapsed);
+                break;
+                case 8:
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Opcao Invalida");
+                break;
+        }
+    }while (op != 8);
+    return 0;
+}
