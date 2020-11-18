@@ -1,0 +1,357 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+
+typedef struct Arvore{
+    int num, altd, alte;
+    struct Arvore *dir, *esq;
+}Arvore;
+
+Arvore *rotacao_esq(Arvore *tree)
+{
+    Arvore *aux1, *aux2;
+    aux1 = tree->dir;
+    aux2 = aux1->esq;
+    tree->dir = aux2;
+    aux1->esq= tree;
+    if(tree->dir == NULL)
+        tree->altd=0;
+    else if(tree->dir->alte > tree->dir->altd)
+        tree->altd = tree->dir->alte+1;
+    else
+        tree->altd = tree->dir->altd+1;
+
+    if(aux1->esq->alte > aux1->esq->altd)
+        aux1->alte = aux1->esq->alte+1;
+    else
+        aux1->alte = aux1->esq->dir+1;
+    return aux1;
+}
+//rotação a direita
+Arvore *rotacao_dir(Arvore *tree)
+{
+    Arvore *aux1, *aux2;
+    aux1 = tree->esq;
+    aux2 = aux1->dir;
+    tree->esq = aux2;
+    aux1->dir = tree;
+    if(tree->esq == NULL)
+        tree->alte=0;
+    else if(tree->esq->alte > tree->esq->altd)
+        tree->alte = tree->esq->alte+1;
+    else
+        tree->alte = tree->esq->altd+1;
+
+    if(aux1->dir->alte > aux1->dir->altd)
+        aux1->altd = aux1->dir->alte+1;
+    else
+        aux1->altd = aux1->dir->altd+1;
+    return aux1;
+}
+//balanceamento da arvore
+Arvore *balanceamento (Arvore *aux)
+{
+    int d, df;
+    d= aux->altd - aux->alte;
+    if(d == 2)
+    {
+        df= aux->dir->altd - aux->dir->alte;
+        if(df >=0 )
+            aux = rotacao_esq(aux);
+        else
+        {
+            aux->dir = rotacao_dir(aux->dir);
+            aux = rotacao_esq(aux);
+        }
+    }
+    else if(d == -2)
+    {
+        df= aux->esq->altd - aux->esq->alte;
+        if(df <= 0)
+            aux=rotacao_dir(aux);
+        else{
+            aux->esq = rotacao_esq(aux->esq);
+            aux = rotacao_dir(aux);
+        }
+    }
+    return aux;
+
+}
+//inserindo elemento na arvore
+Arvore *inserir(Arvore * aux, int num)
+{
+    Arvore *novo;
+    if(aux == NULL)
+    {
+        novo = (Arvore*) malloc(sizeof(Arvore));
+        novo->num = num;
+        novo->altd=0;
+        novo->alte=0;
+        novo->dir=NULL;
+        novo->esq=NULL;
+        aux=novo;
+    }
+    else if(num < aux->num)
+    {
+        aux->esq = inserir(aux->esq, num);
+        if(aux->esq->altd > aux->esq->alte)
+            aux->alte = aux->esq->altd+1;
+        else
+            aux->alte = aux->esq->alte +1;
+        aux = balanceamento(aux);
+    }
+    else
+    {
+        aux->dir = inserir(aux->dir, num);
+        if(aux->dir->altd > aux->dir->alte)
+            aux->altd = aux->dir->altd +1;
+        else
+            aux->altd = aux->dir->alte +1;
+        aux = balanceamento(aux);
+    }
+    return aux;
+}
+//mostrar em ordem
+void mostraremOrdem(Arvore *aux)
+{
+    if(aux !=NULL)
+    {
+        mostraremOrdem(aux->esq);
+        printf("%d \n", aux->num);
+        mostraremOrdem(aux->dir);
+    }
+}
+//Pre Ordem
+void mostrarPreOrdem(Arvore *aux)
+{
+    if(aux !=NULL)
+    {
+        printf("%d \n", aux->num);
+        mostraremOrdem(aux->esq);
+        mostraremOrdem(aux->dir);
+    }
+}
+//pos Ordem
+void mostrarPosOrdem(Arvore *aux)
+{
+    if(aux !=NULL)
+    {
+        mostraremOrdem(aux->esq);
+        mostraremOrdem(aux->dir);
+        printf("%d \n", aux->num);
+    }
+}
+//consulta se esta na arvore
+int consultar(Arvore *aux, int num, int achou)
+{
+    if(aux != NULL && achou == 0)
+    {
+        if(aux->num == num)
+            achou = 1;
+        else if(num < aux->num)
+                achou= consultar(aux->esq, num, achou);
+            else
+                achou=consultar(aux->dir, num, achou);
+    }
+    return achou;
+}
+//remover da arvore
+Arvore *remover(Arvore *aux, int num)
+{
+    Arvore *p, *p2;
+    if(aux->num == num)
+    {
+        if(aux->esq == aux->dir)
+        {//nao tem filho NULL
+            free(aux);//deletando no
+            return NULL;
+        }
+        else if (aux->esq == NULL)
+        {//filho pela direita
+            p=aux->dir;
+            free(aux);
+            return p;
+        }
+        else if(aux->dir ==NULL)
+        {//filho pela esquerda
+            p=aux->esq;
+            free(aux);
+            return p;
+        }
+        else
+        {//filhos pelos dois lados
+            p2=aux->dir;
+            p=aux->dir;
+            while(p->esq != NULL)
+                p=p->esq;
+            p->esq = aux->esq;
+            free(aux);
+            return p2;
+        }
+    }
+    else if(aux->num < num)
+        aux->dir = remover(aux->dir, num);
+    else
+        aux->esq =remover(aux->esq, num);
+    return aux;
+}
+Arvore *atualizar(Arvore *aux)
+{
+    if(aux != NULL)
+    {
+        aux->esq = atualizar(aux->esq);
+        if(aux->esq == NULL)
+            aux->esq = 0;
+        else if(aux->esq->alte > aux->esq->altd)
+            aux->alte = aux->esq->alte +1;
+        else
+            aux->alte = aux->esq->altd +1;
+
+        aux->dir = atualizar(aux->dir);
+        if(aux->dir == NULL)
+            aux->altd=0;
+        else if(aux->dir->alte > aux->dir->altd)
+                aux->altd = aux->dir->alte +1;
+        else
+            aux->altd=aux->dir->altd +1;
+        aux = balanceamento(aux);
+    }
+    return aux;
+}
+//esvaziar arvore
+Arvore *deslocar(Arvore *aux)
+{
+    if(aux != NULL)
+    {
+        aux->esq = deslocar(aux->esq);
+        aux->dir = deslocar(aux->dir);
+        free(aux);
+    }
+    return NULL;
+}
+
+int main()
+{
+    Arvore *raiz=NULL;//arvore vazia
+    Arvore *aux;//ponteiro para auxiliar
+    int op, achou, num;
+    double start, stop, elapsed;
+    do{
+        printf("Menu de opcao \n");
+        printf("Digite 1 para Inserir \n");
+        printf("Digite 2 para Consulta se elemento esta na arvore \n");
+        printf("Digite 3 para mostrar arvore em ordem \n");
+        printf("Digite 4 para mostrar arvore em Pre-ordem \n");
+        printf("Digite 5 para mostrar arvore em Pos-ordem \n");
+        printf("Digite 6 para remover elemento \n");
+        printf("Digite 7 para esvaziar arvore \n");
+        printf("Digite 8 para sair \n");
+        scanf("%d", &op);
+        switch (op)
+        {
+            case 1:
+                printf("Digite a quantidade de elementos a inserir \n");
+                scanf("%d", &num);
+                start = (double) clock() / CLOCKS_PER_SEC;
+                for(int i=1; i <= num;i++){
+                    int valor = rand();
+                    raiz=inserir(raiz, valor);
+                }
+                stop = (double) clock() / CLOCKS_PER_SEC;
+                elapsed = stop - start;
+                printf("Tempo total em segundos da insercao: %f\n", elapsed);
+                break;
+            case 2:
+                if(raiz == NULL)
+                    printf("A arvore está vazia. \n");
+                else
+                    {
+                        printf("Digite o elementos a ser buscado \n");
+                        scanf("%d", &num);
+                        achou=0;
+                        start = (double) clock() / CLOCKS_PER_SEC;
+                        achou =consultar(raiz, num, achou);
+                        stop = (double) clock() / CLOCKS_PER_SEC;
+                        elapsed = stop - start;
+                        printf("Tempo total em segundos da busca: %f\n", elapsed);
+                        if(achou ==0)
+                            printf("elemento não encontrado.\n");
+                        else
+                            printf("Elemento encontrado. \n");
+                    }
+                break;
+            case 3:
+                if(raiz == NULL)
+                    printf("A arvore está vazia. \n");
+                else
+                    {
+                        printf("A arvore mostrada em Ordem. \n");
+                        mostraremOrdem(raiz);
+                    }
+                break;
+            case 4:
+                if(raiz == NULL)
+                    printf("A arvore está vazia. \n");
+                else
+                    {
+                        printf("A arvore mostrada em pre Ordem. \n");
+                        mostrarPreOrdem(raiz);
+                    }
+                break;
+            case 5:
+                if(raiz == NULL)
+                    printf("A arvore está vazia. \n");
+                else
+                    {
+                        printf("A arvore mostrada em Pos-Ordem. \n");
+                        mostrarPosOrdem(raiz);
+                    }
+                break;
+            case 6:
+                if(raiz == NULL)
+                    printf("A arvore está vazia. \n");
+                else
+                    {
+                        printf("Digite o elementos a ser removido \n");
+                        scanf("%d", &num);
+                        achou=0;
+                        achou=consultar(raiz, num, achou);
+                        if(achou==0)
+                            printf("Numero nao encontrado");
+                        else
+                        {
+                            raiz = remover(raiz, num);
+                            raiz = atualizar(raiz);
+                            printf("Numero removido.\n");
+
+                        }
+
+                    }
+                break;
+            case 7:
+                if(raiz == NULL)
+                    printf("A arvore está vazia. \n");
+                else
+                    {
+                        start = (double) clock() / CLOCKS_PER_SEC;
+                        deslocar(raiz);
+                        stop = (double) clock() / CLOCKS_PER_SEC;
+                        elapsed = stop - start;
+                        printf("Tempo total em segundos da remocao de todos: %f\n", elapsed);
+                        printf("Arvore vazia. \n");
+                    }
+                break;
+            case 8:
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Opcao Invalida");
+                break;
+        }
+    }while (op != 8);
+
+
+    printf("Hello world!\n");
+    return 0;
+}
